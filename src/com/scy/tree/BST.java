@@ -132,12 +132,13 @@ public class BST<E extends Comparable<E>> {
         }
     }
 
+    //层序遍历
     public void levelOrder() {
         levelOrder(root);
     }
 
     private void levelOrder(Node node) {
-        if (node ==null) return;
+        if (node == null) return;
         Queue<Node> queue = new LinkedList<>();
         queue.add(node);
         while (!queue.isEmpty()) {
@@ -154,35 +155,108 @@ public class BST<E extends Comparable<E>> {
 
     //获取BST最小值
     public E minimum() {
-        if (size == 0) {
+        if (size == 0)
             throw new IllegalArgumentException("empty BST");
-        }
         return minimum(root).e;
     }
 
     private Node minimum(Node node) {
-        if (node.left == null) {
+        if (node.left == null)
             return node;
-        }
         return minimum(node.left);
     }
 
+    //获取BST最大值
+    public E maximum() {
+        if (size == 0)
+            throw new IllegalArgumentException("empty BST");
+        return maximum(root).e;
+    }
+
+    private Node maximum(Node node) {
+        if (node.right == null)
+            return node;
+        return maximum(node.right);
+    }
+
     //删除最小元素
-    public E removeEle() {
+    public E removeMin() {
         E minimum = minimum();
-        removeEle(root);
+        root = removeMinimum(root);
         return minimum;
     }
+
     //删除二分搜索树中最小值
     //并返回删除之后的BST根
-    private Node removeEle(Node node) {
+    private Node removeMinimum(Node node) {
         if (node.left == null) {
             Node rightNode = node.right;
             node.right = null;
-            size --;
+            size--;
             return rightNode;
         }
-        node.left = removeEle(node.left);
+        node.left = removeMinimum(node.left);
         return node;
+    }
+
+    //删除最大元素
+    public E removeMax() {
+        E maximum = maximum();
+        root = removeMaximum(root);
+        return maximum;
+    }
+
+    //删除二分搜索树中最大值
+    //并返回删除之后的BST根
+    private Node removeMaximum(Node node) {
+        if (node.right == null) {
+            Node leftNode = node.left;
+            node.left = null;
+            size--;
+            return leftNode;
+        }
+        node.right = removeMaximum(node.right);
+        return node;
+    }
+
+    //从BST中删除元素
+    public void remove(E e) {
+        root = remove(root, e);
+    }
+
+    private Node remove(Node node, E e) {
+        if (node == null)
+            return null;
+        if (e.compareTo(node.e) > 0) {
+            node.right = remove(node.right, e);
+            return node;
+        } else if (e.compareTo(node.e) < 0) {
+            node.left = remove(node.left, e);
+            return node;
+        } else {
+
+            // 待删除节点左子树为空的情况
+            if (node.left == null) {
+                Node rightNode = node.right;
+                node.right = null;
+                size--;
+                return rightNode;
+                // 待删除节点右子树为空的情况
+            } else if (node.right == null) {
+                Node leftNode = node.left;
+                node.left = null;
+                size--;
+                return leftNode;
+            } else {
+                // 左右子树都不为空，取后继节点successor（右子树最小值  min(left)）
+                // 用这个节点顶替待删除节点的位置
+                Node successor = minimum(node);
+                successor.right = removeMinimum(node.right);
+                successor.left = node.left;
+
+                node.left = node.right = null;
+                return successor;
+            }
+        }
     }
 }
