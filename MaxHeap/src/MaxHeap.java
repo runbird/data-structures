@@ -1,8 +1,4 @@
-package com.scy.heap;
-
 import java.util.ArrayList;
-
-import static com.sun.tools.javac.jvm.ByteCodes.swap;
 
 /**
  * 类名： MaxHeap <br>

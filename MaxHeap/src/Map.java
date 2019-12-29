@@ -1,5 +1,3 @@
-package com.scy.interfaces;
-
 /**
  * 类名： Map <br>
  * 描述：TODO <br>
@@ -8,7 +6,7 @@ package com.scy.interfaces;
  * @author suocaiyuan
  * @version V1.0
  */
-public interface Map<K,V> {
+public interface Map<K, V> {
     int size();
 
     boolean containsKey(K key);

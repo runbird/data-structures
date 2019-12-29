@@ -1,5 +1,3 @@
-package com.scy.arrays;
-
 /**
  * 类名： Array <br>
  * 描述： 自定义数组 <br>

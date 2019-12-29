@@ -1,5 +1,3 @@
-package com.scy.tree;
-
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Stack;
