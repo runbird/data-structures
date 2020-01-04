@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @desc:
  * @author: Suocaiyuan
@@ -35,6 +38,38 @@ public class AVLTree<K extends Comparable<K>, V> {
 
     public boolean isEmpty() {
         return size == 0;
+    }
+
+    public boolean isBST() {
+        List<K> keys = new ArrayList<>();
+        inOrder(root, keys);
+        for (int i = 1; i < keys.size(); i++) {
+            if (keys.get(i - 1).compareTo(keys.get(i)) > 0)
+                return false;
+        }
+        return true;
+    }
+
+    //中序遍历
+    private void inOrder(Node node, List<K> keys) {
+        if (node == null)
+            return;
+        inOrder(node.left, keys);
+        keys.add(node.key);
+        inOrder(node.right, keys);
+    }
+
+    public boolean isBanlanced() {
+        return isBanlanced(root);
+    }
+
+    private boolean isBanlanced(Node node) {
+        if (node == null)
+            return true;
+        int banlanceFactor = getBanlanceFactor(node);
+        if (Math.abs(banlanceFactor) > 1)
+            return false;
+        return isBanlanced(node.left) && isBanlanced(node.right);
     }
 
     // 获得节点的高度
