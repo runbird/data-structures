@@ -109,10 +109,60 @@ public class AVLTree<K extends Comparable<K>, V> {
 
         //计算平衡因子
         int banlanceFactor = getBanlanceFactor(node);
-        if (Math.abs(banlanceFactor) > 1) {
-            System.out.println("unbanlanced :" + banlanceFactor);
-        }
+//        if (Math.abs(banlanceFactor) > 1) {
+//            System.out.println("unbanlanced :" + banlanceFactor);
+//        }
+        //平衡维护
+        //向左倾斜，右旋
+        if (banlanceFactor > 1 && getBanlanceFactor(node.left) >= 0)
+            return rightRotate(node);
+        if (banlanceFactor < -1 && getBanlanceFactor(node.right) <= 0)
+            return leftRotate(node);
         return node;
+    }
+
+    // 对节点y进行向右旋转操作，返回旋转后新的根节点x
+    //        y                              x
+    //       / \                           /   \
+    //      x   T4     向右旋转 (y)        z     y
+    //     / \       - - - - - - - ->    / \   / \
+    //    z   T3                       T1  T2 T3 T4
+    //   / \
+    // T1   T2
+    private Node rightRotate(Node y) {
+        Node x = y.left;
+        Node t3 = x.right;
+
+        //向右旋转
+        x.right = y;
+        y.left = t3;
+
+        //更新height
+        y.height = Math.max(getHeight(y.left), getHeight(y.right)) + 1;
+        x.height = Math.max(getHeight(x.left), getHeight(x.right)) + 1;
+        return x;
+    }
+
+    // 对节点y进行向左旋转操作，返回旋转后新的根节点x
+    //    y                             x
+    //  /  \                          /   \
+    // T1   x      向左旋转 (y)       y     z
+    //     / \   - - - - - - - ->   / \   / \
+    //   T2  z                     T1 T2 T3 T4
+    //      / \
+    //     T3 T4
+    private Node leftRotate(Node y) {
+        Node x = y.right;
+        Node t2 = x.left;
+
+        //向左旋转
+        x.left = y;
+        y.right = t2;
+
+        // 更新height
+        y.height = Math.max(getHeight(y.left), getHeight(y.right)) + 1;
+        x.height = Math.max(getHeight(x.left), getHeight(x.right)) + 1;
+        return x;
     }
 
     public V get(K key) {
@@ -208,7 +258,7 @@ public class AVLTree<K extends Comparable<K>, V> {
             node.left = node.right = null;
             return successor;
         }
-
     }
+
 
 }
