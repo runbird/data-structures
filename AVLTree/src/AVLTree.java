@@ -113,11 +113,22 @@ public class AVLTree<K extends Comparable<K>, V> {
 //            System.out.println("unbanlanced :" + banlanceFactor);
 //        }
         //平衡维护
-        //向左倾斜，右旋
+        //LL 向左倾斜，右旋  >1左子树高于右子树， >=0左子树的左孩子更高
         if (banlanceFactor > 1 && getBanlanceFactor(node.left) >= 0)
             return rightRotate(node);
+        //RR
         if (banlanceFactor < -1 && getBanlanceFactor(node.right) <= 0)
             return leftRotate(node);
+        //LR
+        if (banlanceFactor > 1 && getBanlanceFactor(node.left) < 0) {
+            node.left = leftRotate(node.left);
+            return rightRotate(node);
+        }
+        //RL
+        if (banlanceFactor < -1 && getBanlanceFactor(node.right) > 0) {
+            node.right = rightRotate(node.right);
+            return leftRotate(node);
+        }
         return node;
     }
 
