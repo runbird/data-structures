@@ -213,6 +213,7 @@ public class AVLTree<K extends Comparable<K>, V> {
 
     // 删除掉以node为根的二分搜索树中的最小节点
     // 返回删除节点后新的二分搜索树的根
+    @Deprecated
     private Node removeMin(Node node) {
         if (node.left == null) {
             Node rightNode = node.right;
@@ -237,12 +238,14 @@ public class AVLTree<K extends Comparable<K>, V> {
     private Node remove(Node node, K key) {
         if (node == null)
             return null;
+
+        Node retNode;
         if (key.compareTo(node.key) < 0) {
             node.left = remove(node.left, key);
-            return node;
+            retNode = node;
         } else if (key.compareTo(node.key) > 0) {
             node.right = remove(node.right, key);
-            return node;
+            retNode = node;
         } else {
             // key.compareTo(node.key) == 0
             // 待删除节点左子树为空的情况
@@ -250,26 +253,53 @@ public class AVLTree<K extends Comparable<K>, V> {
                 Node rightNode = node.right;
                 node.right = null;
                 size--;
-                return rightNode;
-            }
-            // 待删除节点左子树为空的情况
-            if (node.right == null) {
+                retNode = rightNode;
+                // 待删除节点左子树为空的情况
+            } else if (node.right == null) {
                 Node leftNode = node.left;
                 node.left = null;
                 size--;
-                return leftNode;
+                retNode = leftNode;
+            } else {
+                // 待删除节点左右子树均不为空的情况
+                // 找到比待删除节点大的最小节点, 即待删除节点右子树的最小节点
+                // 用这个节点顶替待删除节点的位置
+                Node successor = minimum(node.right);
+                // successor.right = removeMin(node.right); removeMin可能导致右子树不平衡
+                successor.right = remove(node.right, successor.key);
+                successor.left = node.left;
+
+                node.left = node.right = null;
+                retNode = successor;
             }
-            // 待删除节点左右子树均不为空的情况
-            // 找到比待删除节点大的最小节点, 即待删除节点右子树的最小节点
-            // 用这个节点顶替待删除节点的位置
-            Node successor = minimum(node.right);
-            successor.right = removeMin(node.right);
-            successor.left = node.left;
 
-            node.left = node.right = null;
-            return successor;
+            if (retNode == null)
+                return null;
+
+            //更新height
+            retNode.height = 1 + Math.max(getHeight(retNode.left), getHeight(retNode.right));
+
+            //计算平衡因子
+            int banlanceFactor = getBanlanceFactor(retNode);
+
+            //平衡维护
+            //LL 向左倾斜，右旋  >1左子树高于右子树， >=0左子树的左孩子更高
+            if (banlanceFactor > 1 && getBanlanceFactor(retNode.left) >= 0)
+                return rightRotate(retNode);
+            //RR
+            if (banlanceFactor < -1 && getBanlanceFactor(retNode.right) <= 0)
+                return leftRotate(retNode);
+            //LR
+            if (banlanceFactor > 1 && getBanlanceFactor(retNode.left) < 0) {
+                retNode.left = leftRotate(retNode.left);
+                return rightRotate(retNode);
+            }
+            //RL
+            if (banlanceFactor < -1 && getBanlanceFactor(retNode.right) > 0) {
+                retNode.right = rightRotate(retNode.right);
+                return leftRotate(retNode);
+            }
         }
+        return retNode;
     }
-
-
 }
