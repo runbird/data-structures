@@ -2,11 +2,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @desc:
- * @author: Suocaiyuan
- * @date: 2020-01-04 18:05
- **/
-public class AVLTree<K extends Comparable<K>, V> {
+ * 类名： RBTree <br>
+ * 描述：红黑树 <br>
+ * 创建日期： 2020/1/8 <br>
+ *
+ * @author suocaiyuan
+ * @version V1.0
+ */
+public class RBTree<K extends Comparable<K>, V> {
+    private static final boolean RED = true;
+    private static final boolean BLACK = false;
 
     private class Node {
         public Node left;
@@ -14,6 +19,7 @@ public class AVLTree<K extends Comparable<K>, V> {
         public K key;
         public V value;
         public int height;
+        public boolean color;
 
         public Node(K key, V value) {
             this.left = null;
@@ -21,13 +27,14 @@ public class AVLTree<K extends Comparable<K>, V> {
             this.key = key;
             this.value = value;
             height = 1;
+            this.color = RED;
         }
     }
 
-    private Node root;
+    private RBTree.Node root;
     private int size;
 
-    public AVLTree() {
+    public RBTree() {
         root = null;
         size = 0;
     }
