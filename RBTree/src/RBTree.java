@@ -14,11 +14,9 @@ public class RBTree<K extends Comparable<K>, V> {
     private static final boolean BLACK = false;
 
     private class Node {
-        public Node left;
-        public Node right;
+        public Node left, right;
         public K key;
         public V value;
-        public int height;
         public boolean color;
 
         public Node(K key, V value) {
@@ -26,12 +24,11 @@ public class RBTree<K extends Comparable<K>, V> {
             this.right = null;
             this.key = key;
             this.value = value;
-            height = 1;
             this.color = RED;
         }
     }
 
-    private RBTree.Node root;
+    private Node root;
     private int size;
 
     public RBTree() {
@@ -47,140 +44,84 @@ public class RBTree<K extends Comparable<K>, V> {
         return size == 0;
     }
 
-    public boolean isBST() {
-        List<K> keys = new ArrayList<>();
-        inOrder(root, keys);
-        for (int i = 1; i < keys.size(); i++) {
-            if (keys.get(i - 1).compareTo(keys.get(i)) > 0)
-                return false;
-        }
-        return true;
-    }
-
-    //中序遍历
-    private void inOrder(Node node, List<K> keys) {
+    //判断节点node 颜色
+    private boolean isRed(Node node) {
         if (node == null)
-            return;
-        inOrder(node.left, keys);
-        keys.add(node.key);
-        inOrder(node.right, keys);
+            return BLACK;
+        return node.color;
     }
 
-    public boolean isBanlanced() {
-        return isBanlanced(root);
+    //   node                     x
+    //  /   \     左旋转         /  \
+    // T1   x   --------->   node   T3
+    //     / \              /   \
+    //    T2 T3            T1   T2
+    private Node leftRota(Node node) {
+        Node x = node.right;
+        //左旋转
+        node.right = x.left;
+        x.left = node;
+
+        x.color = node.color;
+        node.color = RED;
+        return x;
     }
 
-    private boolean isBanlanced(Node node) {
-        if (node == null)
-            return true;
-        int banlanceFactor = getBanlanceFactor(node);
-        if (Math.abs(banlanceFactor) > 1)
-            return false;
-        return isBanlanced(node.left) && isBanlanced(node.right);
+    //     node                   x
+    //    /   \     右旋转       /  \
+    //   x    T2   ------->   y   node
+    //  / \                       /  \
+    // y  T1                     T1  T2
+    private Node rightRota(Node node) {
+        Node x = node.left;
+        //左旋转
+        node.left = x.right;
+        x.right = node;
+
+        x.color = node.color;
+        node.color = RED;
+        return x;
     }
 
-    // 获得节点的高度
-    private int getHeight(Node node) {
-        if (node == null)
-            return 0;
-        return node.height;
-    }
-
-    // 获得节点的平衡因子
-    private int getBanlanceFactor(Node node) {
-        if (node == null)
-            return 0;
-        return getHeight(node.left) - getHeight(node.right);
+    //颜色翻转
+    private void flipColors(Node node) {
+        node.color = RED;
+        node.left.color = BLACK;
+        node.right.color = BLACK;
     }
 
     public void add(K key, V value) {
         root = add(root, key, value);
+        root.color = BLACK; //最终根节点颜色为黑色
     }
 
     //向以node为根的二分搜索树中插入元素（key,value）递归算法
-    //返回插入新节点后二分搜索树的根
+    // 返回插入新节点后红黑树的根
     private Node add(Node node, K key, V value) {
         if (node == null) {
             size++;
-            return new Node(key, value);
+            return new Node(key, value); //默认插入红色节点
         }
-        if (key.compareTo(node.key) < 0)
-            add(node.left, key, value);
-        else if (key.compareTo(node.key) > 0)
-            add(node.right, key, value);
-        else
+
+        if (key.compareTo(node.key) < 0) {
+            node.left = add(node, node.key, node.value);
+        } else if (key.compareTo(node.key) > 0) {
+            node.right = add(node, node.key, node.value);
+        } else {
             node.value = value;
-
-        //更新height
-        node.height = 1 + Math.max(getHeight(node.left), getHeight(node.right));
-
-        //计算平衡因子
-        int banlanceFactor = getBanlanceFactor(node);
-//        if (Math.abs(banlanceFactor) > 1) {
-//            System.out.println("unbanlanced :" + banlanceFactor);
-//        }
-        //平衡维护
-        //LL 向左倾斜，右旋  >1左子树高于右子树， >=0左子树的左孩子更高
-        if (banlanceFactor > 1 && getBanlanceFactor(node.left) >= 0)
-            return rightRotate(node);
-        //RR
-        if (banlanceFactor < -1 && getBanlanceFactor(node.right) <= 0)
-            return leftRotate(node);
-        //LR
-        if (banlanceFactor > 1 && getBanlanceFactor(node.left) < 0) {
-            node.left = leftRotate(node.left);
-            return rightRotate(node);
         }
-        //RL
-        if (banlanceFactor < -1 && getBanlanceFactor(node.right) > 0) {
-            node.right = rightRotate(node.right);
-            return leftRotate(node);
+
+        if (isRed(node.left) && !isRed(node.right)) {
+            node = rightRota(node);
         }
+        if (isRed(node.right) && !isRed(node.left)) {
+            node = leftRota(node);
+        }
+        if (isRed(node.left) && isRed(node.right)) {
+            flipColors(node);
+        }
+
         return node;
-    }
-
-    // 对节点y进行向右旋转操作，返回旋转后新的根节点x
-    //        y                              x
-    //       / \                           /   \
-    //      x   T4     向右旋转 (y)        z     y
-    //     / \       - - - - - - - ->    / \   / \
-    //    z   T3                       T1  T2 T3 T4
-    //   / \
-    // T1   T2
-    private Node rightRotate(Node y) {
-        Node x = y.left;
-        Node t3 = x.right;
-
-        //向右旋转
-        x.right = y;
-        y.left = t3;
-
-        //更新height
-        y.height = Math.max(getHeight(y.left), getHeight(y.right)) + 1;
-        x.height = Math.max(getHeight(x.left), getHeight(x.right)) + 1;
-        return x;
-    }
-
-    // 对节点y进行向左旋转操作，返回旋转后新的根节点x
-    //    y                             x
-    //  /  \                          /   \
-    // T1   x      向左旋转 (y)       y     z
-    //     / \   - - - - - - - ->   / \   / \
-    //   T2  z                     T1 T2 T3 T4
-    //      / \
-    //     T3 T4
-    private Node leftRotate(Node y) {
-        Node x = y.right;
-        Node t2 = x.left;
-
-        //向左旋转
-        x.left = y;
-        y.right = t2;
-
-        // 更新height
-        y.height = Math.max(getHeight(y.left), getHeight(y.right)) + 1;
-        x.height = Math.max(getHeight(x.left), getHeight(x.right)) + 1;
-        return x;
     }
 
     public V get(K key) {
@@ -232,7 +173,7 @@ public class RBTree<K extends Comparable<K>, V> {
         return node;
     }
 
-    //从二分搜索树中删除键为key的节点
+    // 从二分搜索树中删除键为Key的节点
     public V remove(K key) {
         Node node = getNode(root, key);
         if (node != null) {
@@ -243,69 +184,35 @@ public class RBTree<K extends Comparable<K>, V> {
     }
 
     private Node remove(Node node, K key) {
-        if (node == null)
-            return null;
-
-        Node retNode;
+        if (node == null) return null;
         if (key.compareTo(node.key) < 0) {
             node.left = remove(node.left, key);
-            retNode = node;
+            return node;
         } else if (key.compareTo(node.key) > 0) {
             node.right = remove(node.right, key);
-            retNode = node;
+            return node;
         } else {
-            // key.compareTo(node.key) == 0
             // 待删除节点左子树为空的情况
             if (node.left == null) {
                 Node rightNode = node.right;
                 node.right = null;
                 size--;
-                retNode = rightNode;
-                // 待删除节点左子树为空的情况
-            } else if (node.right == null) {
+                return rightNode;
+            }
+            // 待删除节点右子树为空的情况
+            if (node.right == null) {
                 Node leftNode = node.left;
                 node.left = null;
                 size--;
-                retNode = leftNode;
-            } else {
-                // 待删除节点左右子树均不为空的情况
-                // 找到比待删除节点大的最小节点, 即待删除节点右子树的最小节点
-                // 用这个节点顶替待删除节点的位置
-                Node successor = minimum(node.right);
-                // successor.right = removeMin(node.right); removeMin可能导致右子树不平衡
-                successor.right = remove(node.right, successor.key);
-                successor.left = node.left;
-
-                node.left = node.right = null;
-                retNode = successor;
+                return leftNode;
             }
+            //待删除节点左右子树皆不为空
+            Node successor = minimum(node.right);
+            successor.right = removeMin(node.right);
+            successor.left = node.left;
 
-            if (retNode == null) return null;
-
-            //更新height
-            retNode.height = 1 + Math.max(getHeight(retNode.left), getHeight(retNode.right));
-
-            //计算平衡因子
-            int banlanceFactor = getBanlanceFactor(retNode);
-
-            //平衡维护
-            //LL 向左倾斜，右旋  >1左子树高于右子树， >=0左子树的左孩子更高
-            if (banlanceFactor > 1 && getBanlanceFactor(retNode.left) >= 0)
-                return rightRotate(retNode);
-            //RR
-            if (banlanceFactor < -1 && getBanlanceFactor(retNode.right) <= 0)
-                return leftRotate(retNode);
-            //LR
-            if (banlanceFactor > 1 && getBanlanceFactor(retNode.left) < 0) {
-                retNode.left = leftRotate(retNode.left);
-                return rightRotate(retNode);
-            }
-            //RL
-            if (banlanceFactor < -1 && getBanlanceFactor(retNode.right) > 0) {
-                retNode.right = rightRotate(retNode.right);
-                return leftRotate(retNode);
-            }
+            node.left = node.right = null;
+            return successor;
         }
-        return retNode;
     }
 }
